@@ -3,14 +3,14 @@ from pydantic import BaseModel
 import numpy as np
 import joblib
 
-# Load model
-model = joblib.load("heart_model_xgb.pkl")
+app = FastAPI()
 
-app = FastAPI(title="Heart Attack Prediction API")
+# Load model once at startup
+model = joblib.load("heart_model_xgb.pkl")
 
 class HeartData(BaseModel):
     age: int
-    gender: int      # 1 = Male, 0 = Female
+    gender: int  # 1 = Male, 0 = Female
     heart_rate: int
     systolic_bp: int
     diastolic_bp: int
@@ -19,8 +19,8 @@ class HeartData(BaseModel):
     troponin: float
 
 @app.get("/")
-def root():
-    return {"message": "Heart Attack Prediction API is running."}
+def home():
+    return {"message": "API for Heart Attack Prediction is active"}
 
 @app.post("/predict")
 def predict(data: HeartData):
@@ -31,9 +31,8 @@ def predict(data: HeartData):
                              data.systolic_bp, data.diastolic_bp,
                              data.blood_sugar, data.ckmb, data.troponin,
                              flag_ckmb, flag_trop]])
-    prediction = model.predict(input_array)[0]
-
+    result = model.predict(input_array)[0]
     return {
-        "prediction": int(prediction),
-        "risk": "High" if prediction == 1 else "Low"
+        "prediction": int(result),
+        "risk": "High" if result == 1 else "Low"
     }
